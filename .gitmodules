@@ -1,0 +1,3 @@
+[submodule "bib2json"]
+	path = bib2json
+	url = git://github.com/mayanklahiri/bib2json.git
