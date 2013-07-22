@@ -38,7 +38,7 @@ var serviette = {
                         bibjson.push(jsonlines);
                     } else if (line[line.length-1] != ",") {
                         throw "BibTeX parse error. Neither comma nor close bracket at end of \"" + line + "\"";
-                    }    
+                    }
                 } else if (line[0] == "@") { // start a new record
                     inItem = true;
                     jsonlines = ["{\n"];
@@ -93,7 +93,7 @@ var serviette = {
                         literalArray.push(bibliteral);
                     } else if (line[line.length-1] != ",") {
                         throw "BibTeX parse error. Neither comma nor close bracket at end of \"" + line + "\"";
-                    }    
+                    }
                 } else if (line[0] == "@") { // start a new record
                     inItem = true;
                     bibliteral = {};
@@ -111,6 +111,52 @@ var serviette = {
             }
         }
         if (inItem) throw "BibTeX parse error. File ends without closing records.";
+        return literalArray
+    },
+
+    // converts a reference list from a BibJSON format (output of bib2json Parser) to literal array
+    json2literal : function(bibjson) {
+
+        // store bib entries in a literal array
+        literalArray = [];
+
+        // loop over individual entries
+        for (i=0; i < bibjson.length; i++) {
+
+            /*
+             * Each element of bibjson has the following keys:
+             *  EntryKey (the Bibtex cite-key)
+             *  EntryType (the citation type)
+             *  Fields (an object containing information about the citation)
+            */
+
+            // convert keys to lower case (case can vary between .bib files)
+            var keys = Object.keys(bibjson[i].Fields);
+            var n = keys.length;
+            var bibFields = {}
+            while (n--) {
+                key = keys[n];
+                bibFields[key.toLowerCase()] = bibjson[i].Fields[key];
+            }
+
+            // generate the literal object
+            // TODO: error checks if certain fields are missing!!
+            bibliteral = {
+                index: i,
+                type: bibjson[i].EntryType,
+                citekey: bibjson[i].EntryKey,
+                date_added: bibFields['Date-Added'],
+                date_modified: bibFields['Date-Modified'],
+                title: bibFields.title,
+                author: bibFields.author.split('and'),
+                publisher: bibFields.journal,
+                year: bibFields.year
+            };
+
+            // push this entry to the array
+            literalArray.push(bibliteral);
+
+        }
         return literalArray
     }
 };
